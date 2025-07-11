@@ -1,0 +1,37 @@
+{
+  "VECTOR000": {
+    "first_interaction": "2025-07-04T21:35:36.532641",
+    "total_messages": 60,
+    "favorite_topics": [
+      "life"
+    ],
+    "personality_traits": [
+      "إيجابي"
+    ],
+    "interaction_summary": "يحب الحديث عن: life | الشخصية: إيجابي",
+    "last_interaction": "2025-07-10T14:00:18.434432"
+  },
+  "yay81111": {
+    "first_interaction": "2025-07-04T23:06:22.805335",
+    "total_messages": 9,
+    "favorite_topics": [
+      "entertainment",
+      "relationships"
+    ],
+    "personality_traits": [],
+    "interaction_summary": "",
+    "last_interaction": "2025-07-04T23:29:45.332732"
+  },
+  "Abu_Nasser_711": {
+    "first_interaction": "2025-07-05T01:49:57.054620",
+    "total_messages": 5,
+    "favorite_topics": [
+      "relationships"
+    ],
+    "personality_traits": [
+      "إيجابي"
+    ],
+    "interaction_summary": "",
+    "last_interaction": "2025-07-05T01:57:12.032288"
+  }
+}
