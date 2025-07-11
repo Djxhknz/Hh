@@ -1,0 +1,598 @@
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Assistant - Google Gemini</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .ai-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .ai-header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .ai-header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .ai-chat-container {
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 20px;
+            height: 70vh;
+        }
+
+        .chat-area {
+            background: white;
+            border-radius: 15px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: #f8f9fa;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            padding: 12px 16px;
+            border-radius: 12px;
+            max-width: 80%;
+            word-wrap: break-word;
+        }
+
+        .user-message {
+            background: #007bff;
+            color: white;
+            margin-left: auto;
+            text-align: right;
+        }
+
+        .ai-message {
+            background: #28a745;
+            color: white;
+            margin-right: auto;
+        }
+
+        .system-message {
+            background: #ffc107;
+            color: #333;
+            text-align: center;
+            max-width: 100%;
+        }
+
+        .code-block {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+            margin: 10px 0;
+            position: relative;
+        }
+
+        .apply-code-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .apply-code-btn:hover {
+            background: #218838;
+        }
+
+        .chat-input-area {
+            padding: 20px;
+            background: white;
+            border-top: 1px solid #eee;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid #ddd;
+            border-radius: 25px;
+            outline: none;
+            font-size: 16px;
+            resize: none;
+            min-height: 20px;
+            max-height: 100px;
+        }
+
+        .chat-input:focus {
+            border-color: #007bff;
+        }
+
+        .send-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .send-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .sidebar {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .sidebar h3 {
+            color: #333;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #eee;
+        }
+
+        .quick-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .quick-btn {
+            background: #f8f9fa;
+            border: 1px solid #ddd;
+            padding: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .quick-btn:hover {
+            background: #e9ecef;
+            transform: translateY(-1px);
+        }
+
+        .capabilities {
+            background: #e8f5e8;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
+        .capabilities h4 {
+            color: #28a745;
+            margin-bottom: 10px;
+        }
+
+        .capabilities ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .capabilities li {
+            padding: 5px 0;
+            color: #555;
+        }
+
+        .capabilities li:before {
+            content: "✓ ";
+            color: #28a745;
+            font-weight: bold;
+        }
+
+        .typing-indicator {
+            display: none;
+            background: #f8f9fa;
+            padding: 10px 16px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            color: #666;
+            font-style: italic;
+        }
+
+        .typing-dots {
+            display: inline-flex;
+            gap: 2px;
+        }
+
+        .typing-dots span {
+            width: 6px;
+            height: 6px;
+            background: #999;
+            border-radius: 50%;
+            animation: typing 1.4s infinite ease-in-out;
+        }
+
+        .typing-dots span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-dots span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typing {
+            0%, 80%, 100% {
+                transform: scale(0);
+            }
+            40% {
+                transform: scale(1);
+            }
+        }
+
+        .file-path {
+            background: #6c757d;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-family: monospace;
+            margin: 5px 0;
+            display: inline-block;
+        }
+
+        .success-notification {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+            padding: 10px;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+
+        .error-notification {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+            padding: 10px;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+
+        @media (max-width: 768px) {
+            .ai-chat-container {
+                grid-template-columns: 1fr;
+                height: auto;
+            }
+            
+            .sidebar {
+                order: -1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="ai-container">
+        <div class="ai-header">
+            <h1>🤖 AI Assistant - Google Gemini</h1>
+            <p>مساعد ذكي متطور لإنشاء الأوامر وإصلاح الأخطاء</p>
+        </div>
+
+        <div class="ai-chat-container">
+            <div class="chat-area">
+                <div class="chat-messages" id="chatMessages">
+                    <div class="message system-message">
+                        <strong>🚀 مرحباً بك في AI Assistant</strong><br>
+                        أنا هنا لمساعدتك في إنشاء الأوامر، إصلاح الأخطاء، وتطوير البوت باستخدام Google Gemini AI
+                    </div>
+                </div>
+                
+                <div class="typing-indicator" id="typingIndicator">
+                    <div class="typing-dots">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                    AI يكتب...
+                </div>
+
+                <div class="chat-input-area">
+                    <div class="input-group">
+                        <textarea 
+                            class="chat-input" 
+                            id="chatInput" 
+                            placeholder="اطلب مني أي شيء... مثل: أنشئ أمر جديد للرقص، أصلح خطأ في الكود، أضف ميزة جديدة..."
+                            rows="2"
+                        ></textarea>
+                        <button class="send-btn" id="sendBtn">إرسال</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sidebar">
+                <h3>🎯 إجراءات سريعة</h3>
+                <div class="quick-actions">
+                    <div class="quick-btn" onclick="sendQuickMessage('أنشئ أمر جديد للرقص')">
+                        🕺 إنشاء أمر رقص
+                    </div>
+                    <div class="quick-btn" onclick="sendQuickMessage('أصلح الأخطاء في الكود')">
+                        🔧 إصلاح الأخطاء
+                    </div>
+                    <div class="quick-btn" onclick="sendQuickMessage('أضف ميزة جديدة للبوت')">
+                        ⭐ إضافة ميزة جديدة
+                    </div>
+                    <div class="quick-btn" onclick="sendQuickMessage('حسّن أداء البوت')">
+                        ⚡ تحسين الأداء
+                    </div>
+                    <div class="quick-btn" onclick="sendQuickMessage('اشرح لي كيف يعمل هذا الكود')">
+                        📖 شرح الكود
+                    </div>
+                    <div class="quick-btn" onclick="sendQuickMessage('أنشئ واجهة ويب جديدة')">
+                        🌐 واجهة ويب جديدة
+                    </div>
+                </div>
+
+                <div class="capabilities">
+                    <h4>🎯 قدراتي المتقدمة</h4>
+                    <ul>
+                        <li>إنشاء أوامر مخصصة</li>
+                        <li>إصلاح الأخطاء تلقائياً</li>
+                        <li>تطوير ميزات جديدة</li>
+                        <li>تحسين الأداء</li>
+                        <li>شرح الكود بالتفصيل</li>
+                        <li>إنشاء واجهات ويب</li>
+                        <li>تطبيق التغييرات مباشرة</li>
+                        <li>النسخ الاحتياطي التلقائي</li>
+                    </ul>
+                </div>
+
+                <div style="margin-top: 20px; text-align: center;">
+                    <button class="quick-btn" onclick="clearChat()" style="background: #dc3545; color: white;">
+                        🗑️ مسح المحادثة
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let conversationHistory = [];
+
+        // إعداد مفاتيح الاختصار
+        document.addEventListener('DOMContentLoaded', function() {
+            const chatInput = document.getElementById('chatInput');
+            const sendBtn = document.getElementById('sendBtn');
+
+            chatInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                }
+            });
+
+            sendBtn.addEventListener('click', sendMessage);
+        });
+
+        function sendQuickMessage(message) {
+            document.getElementById('chatInput').value = message;
+            sendMessage();
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+            
+            if (!message) return;
+
+            // إضافة رسالة المستخدم
+            addMessage('user', message);
+            input.value = '';
+
+            // إظهار مؤشر الكتابة
+            showTypingIndicator();
+
+            // إضافة إلى تاريخ المحادثة
+            conversationHistory.push({
+                role: 'user',
+                content: message
+            });
+
+            // إرسال إلى AI
+            fetch('/api/ai-assistant/chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    message: message,
+                    history: conversationHistory.slice(-10) // آخر 10 رسائل للسياق
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                hideTypingIndicator();
+                
+                if (data.success) {
+                    addMessage('ai', data.response, data.code_changes, data.applied_changes);
+                    
+                    // إضافة رد AI إلى التاريخ
+                    conversationHistory.push({
+                        role: 'assistant',
+                        content: data.response
+                    });
+
+                    // إظهار إشعار النجاح إذا تم تطبيق تغييرات
+                    if (data.applied_changes && data.applied_changes.length > 0) {
+                        showNotification('success', `تم تطبيق ${data.applied_changes.length} تغيير بنجاح`);
+                    }
+                } else {
+                    addMessage('system', 'خطأ: ' + (data.error || 'حدث خطأ غير متوقع'));
+                    showNotification('error', data.error || 'حدث خطأ في الاتصال');
+                }
+            })
+            .catch(error => {
+                hideTypingIndicator();
+                console.error('Error:', error);
+                addMessage('system', 'خطأ في الاتصال بـ AI Assistant');
+                showNotification('error', 'فشل في الاتصال بالخادم');
+            });
+        }
+
+        function addMessage(type, content, codeChanges = null, appliedChanges = null) {
+            const messagesContainer = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            
+            let className = 'message ';
+            switch(type) {
+                case 'user':
+                    className += 'user-message';
+                    break;
+                case 'ai':
+                    className += 'ai-message';
+                    break;
+                case 'system':
+                    className += 'system-message';
+                    break;
+            }
+            
+            messageDiv.className = className;
+            
+            let messageHTML = content.replace(/\n/g, '<br>');
+            
+            // إضافة كتل الكود إذا وجدت
+            if (codeChanges && codeChanges.length > 0) {
+                messageHTML += '<br><br><strong>💻 تغييرات الكود:</strong>';
+                codeChanges.forEach((change, index) => {
+                    messageHTML += `
+                        <div class="file-path">📁 ${change.file_path}</div>
+                        <div class="code-block">
+                            <button class="apply-code-btn" onclick="applyCodeChange(${index}, '${change.file_path}')">
+                                تطبيق التغيير
+                            </button>
+                            <pre>${escapeHtml(change.content)}</pre>
+                        </div>
+                    `;
+                });
+            }
+            
+            // إضافة التغييرات المطبقة
+            if (appliedChanges && appliedChanges.length > 0) {
+                messageHTML += '<br><br><strong>✅ تم تطبيق التغييرات على:</strong><br>';
+                appliedChanges.forEach(change => {
+                    messageHTML += `<span class="file-path">✓ ${change}</span><br>`;
+                });
+            }
+            
+            messageDiv.innerHTML = messageHTML;
+            messagesContainer.appendChild(messageDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        function applyCodeChange(index, filePath) {
+            fetch('/api/ai-assistant/apply-code', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    file_path: filePath,
+                    change_index: index
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification('success', `تم تطبيق التغيير على ${filePath}`);
+                    // تحديث زر التطبيق
+                    event.target.textContent = '✅ تم التطبيق';
+                    event.target.disabled = true;
+                    event.target.style.background = '#28a745';
+                } else {
+                    showNotification('error', `فشل في تطبيق التغيير: ${data.error}`);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification('error', 'خطأ في تطبيق التغيير');
+            });
+        }
+
+        function showTypingIndicator() {
+            document.getElementById('typingIndicator').style.display = 'block';
+            document.getElementById('chatMessages').scrollTop = document.getElementById('chatMessages').scrollHeight;
+        }
+
+        function hideTypingIndicator() {
+            document.getElementById('typingIndicator').style.display = 'none';
+        }
+
+        function clearChat() {
+            if (confirm('هل أنت متأكد من مسح المحادثة؟')) {
+                document.getElementById('chatMessages').innerHTML = `
+                    <div class="message system-message">
+                        <strong>🚀 مرحباً بك في AI Assistant</strong><br>
+                        أنا هنا لمساعدتك في إنشاء الأوامر، إصلاح الأخطاء، وتطوير البوت باستخدام Google Gemini AI
+                    </div>
+                `;
+                conversationHistory = [];
+                showNotification('success', 'تم مسح المحادثة');
+            }
+        }
+
+        function showNotification(type, message) {
+            const notification = document.createElement('div');
+            notification.className = type === 'success' ? 'success-notification' : 'error-notification';
+            notification.textContent = message;
+            
+            document.body.appendChild(notification);
+            
+            // إزالة الإشعار بعد 3 ثوان
+            setTimeout(() => {
+                document.body.removeChild(notification);
+            }, 3000);
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // تحديث الحالة كل 30 ثانية
+        setInterval(() => {
+            fetch('/api/status')
+                .then(response => response.json())
+                .then(data => {
+                    console.log('🤖 AI Assistant نشط ومتصل');
+                })
+                .catch(error => {
+                    console.warn('⚠️ مشكلة في الاتصال بالخادم');
+                });
+        }, 30000);
+
+        console.log('🤖 AI Assistant محمل وجاهز للعمل!');
+    </script>
+</body>
+</html>
